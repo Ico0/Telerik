@@ -44,38 +44,17 @@ namespace SoftwareAcademy
     {
         public ITeacher CreateTeacher(string name)
         {
-            if (name != null && name != string.Empty)
-            {
-                return new Teacher(name);
-            }
-            else
-            {
-                throw new NullReferenceException();
-            }
+            return new Teacher(name);
         }
 
         public ILocalCourse CreateLocalCourse(string name, ITeacher teacher, string lab)
         {
-            if ((name != null && name != string.Empty) || (lab != null && lab != string.Empty))
-            {
-                return new LocalCourse(name, teacher, lab);
-            }
-            else
-            {
-                throw new NullReferenceException();
-            }
+            return new LocalCourse(name, teacher, lab);
         }
 
         public IOffsiteCourse CreateOffsiteCourse(string name, ITeacher teacher, string town)
         {
-            if ((name != null && name != string.Empty) || (town != null && town != string.Empty))
-            {
-                return new OffsiteCourse(name, teacher, town);
-            }
-            else
-            {
-                throw new NullReferenceException();
-            }
+            return new OffsiteCourse(name, teacher, town);
         }
     }
 
@@ -105,7 +84,7 @@ namespace SoftwareAcademy
             {
                 @"using System;
                   using SoftwareAcademy;
-    
+
                   public class RuntimeCompiledClass
                   {
                      public static void Main()
@@ -144,128 +123,7 @@ namespace SoftwareAcademy
             methInfo.Invoke(null, null);
         }
     }
-
-    class LocalCourse : ILocalCourse
-    {
-        private string name;
-        private string lab;
-        private ITeacher teacher;
-        private List<string> topics;
-
-        public string Name
-        {
-            get { return name; }
-            set { name = value; }
-        }
-
-        public ITeacher Teacher
-        {
-            get { return teacher; }
-            set { teacher = value; }
-        }
-
-        public string Lab
-        {
-            get { return lab; }
-            set { lab = value; }
-        }
-
-        public LocalCourse(string name, ITeacher teacher, string lab)
-        {
-            this.Name = name;
-            this.Teacher = teacher;
-            this.Lab = lab;
-            this.topics = new List<string>();
-        }
-
-        public void AddTopic(string topic)
-        {
-            this.topics.Add(topic);
-        }
-
-        public override string ToString()
-        {
-            StringBuilder myReturn = new StringBuilder();
-            myReturn.Append(String.Format("LocalCourse: Name={0}", this.Name));
-            if (Teacher != null)
-            {
-                myReturn.Append(String.Format("; Teacher={0}", teacher.Name));
-            }
-            if (topics.Count != 0)
-            {
-                myReturn.Append("; Topics=[");
-                for (int i = 0; i < topics.Count; i++)
-                {
-                    myReturn.Append(String.Concat(topics[i], ", "));
-                }
-                myReturn.Remove(myReturn.ToString().Length - 2, 2);
-                myReturn.Append("]");
-            }
-            myReturn.Append(String.Format("; Lab={0}", this.Lab));
-            return myReturn.ToString();
-        }
-    }
-
-    public class OffsiteCourse : IOffsiteCourse
-    {
-        string name;
-        string town;
-        ITeacher teacher;
-        List<string> topics = new List<string>();
-
-        public string Name
-        {
-            get { return name; }
-            set { name = value; }
-        }
-
-        public ITeacher Teacher
-        {
-            get { return teacher; }
-            set { teacher = value; }
-        }
-
-        public string Town
-        {
-            get { return town; }
-            set { town = value; }
-        }
-
-        public OffsiteCourse(string name, ITeacher teacher, string town)
-        {
-            this.Name = name;
-            this.Teacher = teacher;
-            this.Town = town;
-        }
-
-        public void AddTopic(string topic)
-        {
-            this.topics.Add(topic);
-        }
-
-        public override string ToString()
-        {
-            StringBuilder myReturn = new StringBuilder();
-            myReturn.Append(String.Format("OffsiteCourse: Name={0}", this.Name));
-            if (Teacher != null)
-            {
-                myReturn.Append(String.Format("; Teacher={0}", teacher.Name));
-            }
-            if (topics.Count != 0)
-            {
-                myReturn.Append("; Topics=[");
-                for (int i = 0; i < topics.Count; i++)
-                {
-                    myReturn.Append(String.Concat(topics[i], ", "));
-                }
-                myReturn.Remove(myReturn.ToString().Length - 2, 2);
-                myReturn.Append("]");
-            }
-            myReturn.Append(String.Format("; Town={0}", this.Town));
-            return myReturn.ToString();
-        }
-    }
-
+    
     public class Teacher : ITeacher
     {
         private string name;
@@ -274,7 +132,14 @@ namespace SoftwareAcademy
         public string Name
         {
             get { return name; }
-            set { name = value; }
+            set
+            {
+                if (String.IsNullOrEmpty(value))
+                {
+                    throw new NullReferenceException("Teacher Name");
+                }
+                name = value;
+            }
         }
 
         public Teacher(string name)
@@ -295,13 +160,128 @@ namespace SoftwareAcademy
             if (courses.Count != 0)
             {
                 myReturn.Append("; Courses=[");
-                for (int i = 0; i < courses.Count; i++)
-                {
-                    myReturn.Append(String.Concat(courses[i].Name, ", "));
-                }
-                myReturn.Remove(myReturn.ToString().Length - 2, 2);
+                myReturn.Append(String.Join(", ", this.courses.Select(x=>x.Name)));
                 myReturn.Append("]");
             }
+            return myReturn.ToString();
+        }
+    }
+    
+     public abstract class Course:ICourse
+    {
+        private string name;
+        ITeacher teacher;
+        List<string> topics;
+
+        public string Name
+        {
+            get { return name; }
+            set
+            {
+                if (String.IsNullOrEmpty(value))
+                {
+                    throw new NullReferenceException("Course Name");
+                }
+                name = value;
+            }
+        }
+
+        public ITeacher Teacher
+        {
+            get { return teacher; }
+            set { teacher = value; }
+        }
+
+        public Course(string name, ITeacher teacher)
+        {
+            this.Name = name;
+            this.Teacher = teacher;
+            this.topics = new List<string>();
+        }
+
+        public void AddTopic(string topic)
+        {
+            this.topics.Add(topic);
+        }
+
+        public override string ToString()
+        {
+            StringBuilder myReturn=new StringBuilder();
+            myReturn.Append(String.Format("Course: Name={0}", this.Name));
+            if (Teacher != null)
+            {
+                myReturn.Append(String.Format("; Teacher={0}", this.teacher.Name));
+            }
+            if (topics.Count != 0)
+            {
+                myReturn.Append("; Topics=[");
+                myReturn.Append(String.Join(", ", this.topics));
+                myReturn.Append("]");
+            }
+            return myReturn.ToString();
+        }
+    }
+    
+     public class OffsiteCourse : Course, IOffsiteCourse
+    {
+        string town;
+
+        public string Town
+        {
+            get { return town; }
+            set
+            {
+                if (String.IsNullOrEmpty(value))
+                {
+                    throw new NullReferenceException("OffsiteCourse Town");
+                }
+                town = value;
+            }
+        }
+
+        public OffsiteCourse(string name, ITeacher teacher, string town)
+            : base(name, teacher)
+        {
+            this.Town = town;
+        }
+
+        public override string ToString()
+        {
+            StringBuilder myReturn = new StringBuilder();
+            myReturn.Append(String.Format("Offsite{0}", base.ToString()));
+            myReturn.Append(String.Format("; Town={0}", this.Town));
+            return myReturn.ToString();
+        }
+    }
+    
+    class LocalCourse : Course, ILocalCourse
+    {
+        private string lab;
+
+        public string Lab
+        {
+            get { return lab; }
+          set
+            {
+                if (String.IsNullOrEmpty(value))
+                {
+                    throw new NullReferenceException("LocalCourse Lab");
+                }
+                lab = value;
+            }
+        }
+
+        public LocalCourse(string name, ITeacher teacher, string lab)
+            : base(name, teacher)
+        {
+            this.Lab = lab;
+        }
+
+        public override string ToString()
+        {
+            StringBuilder myReturn = new StringBuilder();
+            myReturn.Append(String.Format("Local{0}", base.ToString()));
+            myReturn.Append(String.Format("; Lab={0}", this.Lab));
             return myReturn.ToString();
         }
     }
